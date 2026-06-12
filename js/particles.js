@@ -8,6 +8,8 @@ class MagicParticles {
     this.ctx = canvas.getContext("2d");
     this.particles = [];
     this.rings = [];
+    this.comets = []; // ビビディバビディブー用の流れ星
+    this.goldUntil = 0; // この時刻まで金色テーマで光る
     this.flash = 0; // 画面全体のフラッシュ強度 (0-1)
     this.maxParticles = 2500;
     this.lastTime = performance.now();
@@ -18,8 +20,16 @@ class MagicParticles {
     this.canvas.height = height;
   }
 
-  /** 青〜白系のランダムな色相を返す */
+  /** 青〜白系(呪文発動中は金色系)のランダムな色相を返す */
   _pickColor() {
+    if (performance.now() < this.goldUntil) {
+      // 金色を主体に、たまにピンクを混ぜたおとぎ話カラー
+      if (Math.random() < 0.15) {
+        return { hue: 315, sat: 80, light: 75 };
+      }
+      const hue = 38 + Math.random() * 20;
+      return { hue, sat: 85 + Math.random() * 15, light: 60 + Math.random() * 30 };
+    }
     const hue = 195 + Math.random() * 30; // 水色〜青
     const sat = 60 + Math.random() * 40;
     const light = 60 + Math.random() * 35;
@@ -141,15 +151,44 @@ class MagicParticles {
     }
 
     // 広がる光のリング
-    this.rings.push({ x, y, r: 10, vr: 900, life: 1, decay: 1.6 });
-    this.rings.push({ x, y, r: 4, vr: 550, life: 1, decay: 1.1 });
+    const ringHue = performance.now() < this.goldUntil ? 48 : 205;
+    this.rings.push({ x, y, r: 10, vr: 900, life: 1, decay: 1.6, hue: ringHue });
+    this.rings.push({ x, y, r: 4, vr: 550, life: 1, decay: 1.1, hue: ringHue });
 
     this.flash = 0.55;
+  }
+
+  /**
+   * 「ビビディバビディブー」: 画面全体が金色に変わり、
+   * 流れ星が舞い上がって次々に弾けるスペシャルショー。
+   */
+  bibbidiShow() {
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+    this.goldUntil = performance.now() + 5000;
+    this.flash = 0.5;
+    this.rings.push({ x: w / 2, y: h / 2, r: 10, vr: 1100, life: 1, decay: 1.4, hue: 48 });
+
+    // 画面下から舞い上がる流れ星たち(時間差で打ち上がり、消える時に爆発)
+    const count = 6;
+    for (let i = 0; i < count; i++) {
+      const fromLeft = i % 2 === 0;
+      this.comets.push({
+        x: w * (0.35 + Math.random() * 0.3),
+        y: h + 30,
+        vx: (fromLeft ? -1 : 1) * (120 + Math.random() * 380),
+        vy: -(650 + Math.random() * 450),
+        life: 0.8 + Math.random() * 0.7,
+        delay: i * 0.25 + Math.random() * 0.15,
+        prev: null,
+      });
+    }
   }
 
   clear() {
     this.particles.length = 0;
     this.rings.length = 0;
+    this.comets.length = 0;
     this.flash = 0;
   }
 
@@ -181,6 +220,40 @@ class MagicParticles {
       this._draw(p);
     }
 
+    // --- 流れ星(ビビディバビディブー) ---
+    for (let i = this.comets.length - 1; i >= 0; i--) {
+      const c = this.comets[i];
+      if (c.delay > 0) {
+        c.delay -= dt;
+        continue;
+      }
+      const prevX = c.x;
+      const prevY = c.y;
+      c.vy += 500 * dt; // 重力で弧を描く
+      c.x += c.vx * dt;
+      c.y += c.vy * dt;
+      c.life -= dt;
+
+      // 軌道に沿ってキラキラを撒く(goldUntil 中なので金色になる)
+      this.emitTrail(prevX, prevY, c.x, c.y);
+
+      // 明るい頭部
+      const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, 26);
+      g.addColorStop(0, "hsla(50, 100%, 95%, 0.95)");
+      g.addColorStop(0.4, "hsla(45, 100%, 70%, 0.5)");
+      g.addColorStop(1, "hsla(40, 100%, 60%, 0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, 26, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 寿命が尽きたらその場で爆発
+      if (c.life <= 0) {
+        this.comets.splice(i, 1);
+        this.burst(c.x, c.y);
+      }
+    }
+
     // --- リング描画 ---
     for (let i = this.rings.length - 1; i >= 0; i--) {
       const ring = this.rings[i];
@@ -192,9 +265,10 @@ class MagicParticles {
       ring.r += ring.vr * dt;
       ctx.beginPath();
       ctx.arc(ring.x, ring.y, ring.r, 0, Math.PI * 2);
-      ctx.strokeStyle = `hsla(205, 100%, 80%, ${ring.life * 0.6})`;
+      const rh = ring.hue ?? 205;
+      ctx.strokeStyle = `hsla(${rh}, 100%, 80%, ${ring.life * 0.6})`;
       ctx.lineWidth = 6 * ring.life;
-      ctx.shadowColor = "rgba(120, 190, 255, 0.9)";
+      ctx.shadowColor = `hsla(${rh}, 100%, 75%, 0.9)`;
       ctx.shadowBlur = 25;
       ctx.stroke();
       ctx.shadowBlur = 0;

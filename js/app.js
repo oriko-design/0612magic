@@ -12,6 +12,11 @@
   const magic = new MagicParticles(canvas);
   const sound = new MagicSound();
 
+  // 「ビビディバビディブー」と言うと金色のスペシャルショーが発動
+  const spellListener = new SpellListener(() => {
+    magic.bibbidiShow();
+  });
+
   function resize() {
     magic.resize(window.innerWidth, window.innerHeight);
   }
@@ -144,6 +149,7 @@
     .then(() => {
       loadingEl.classList.add("hidden");
       sound.tryPlay(); // カメラ起動のタイミングでも自動再生を再試行
+      spellListener.start(); // マイクで呪文を聞き始める(非対応ブラウザでは何もしない)
       renderLoop();
     })
     .catch((err) => {
