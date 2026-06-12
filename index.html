@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>✨ マジックフィンガー - 指で魔法を描こう</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="stage">
+    <video id="video" playsinline></video>
+    <canvas id="magic-canvas"></canvas>
+
+    <div id="overlay-ui">
+      <div id="title">✨ マジックフィンガー</div>
+      <div id="status">カメラを起動しています…</div>
+      <div id="hint">
+        ☝️ 指を動かすと魔法の軌跡が描けるよ<br />
+        🖐️ 手をパーにすると「パーッ」と魔法が弾けるよ
+      </div>
+      <button id="clear-btn">軌跡を消す</button>
+    </div>
+
+    <div id="burst-label">パーッ!!</div>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>魔法の準備中…<br /><small>カメラの使用を許可してください</small></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
