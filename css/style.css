@@ -36,59 +36,6 @@ body {
   height: 100%;
 }
 
-/* ---------- UI ---------- */
-
-#overlay-ui {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 16px 20px;
-  pointer-events: none;
-  color: #cfe9ff;
-  text-shadow: 0 0 8px rgba(80, 160, 255, 0.9);
-  z-index: 10;
-}
-
-#title {
-  font-size: 22px;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-#status {
-  margin-top: 6px;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-#hint {
-  margin-top: 10px;
-  font-size: 13px;
-  line-height: 1.7;
-  opacity: 0.75;
-}
-
-#clear-btn,
-#sound-btn {
-  margin-top: 12px;
-  pointer-events: auto;
-  background: rgba(40, 90, 160, 0.35);
-  border: 1px solid rgba(140, 200, 255, 0.6);
-  color: #dff1ff;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-size: 13px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  transition: background 0.2s;
-}
-
-#clear-btn:hover,
-#sound-btn:hover {
-  background: rgba(70, 140, 220, 0.55);
-}
-
 /* ---------- ローディング ---------- */
 
 #loading {

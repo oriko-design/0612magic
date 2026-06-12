@@ -7,29 +7,16 @@
 (() => {
   const video = document.getElementById("video");
   const canvas = document.getElementById("magic-canvas");
-  const statusEl = document.getElementById("status");
   const loadingEl = document.getElementById("loading");
-  const clearBtn = document.getElementById("clear-btn");
-  const soundBtn = document.getElementById("sound-btn");
 
   const magic = new MagicParticles(canvas);
   const sound = new MagicSound();
-
-  let soundOn = true;
-  soundBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // OFF にした直後に保険のリスナーで再生が再開しないように
-    soundOn = !soundOn;
-    sound.setEnabled(soundOn);
-    soundBtn.textContent = soundOn ? "🔊 BGM ON" : "🔇 BGM OFF";
-  });
 
   function resize() {
     magic.resize(window.innerWidth, window.innerHeight);
   }
   window.addEventListener("resize", resize);
   resize();
-
-  clearBtn.addEventListener("click", () => magic.clear());
 
   // ---- 手ごとの状態(最大2つ) ----
   // prevTip: 前フレームの指先座標 / openState: パー判定の状態遷移用
@@ -84,11 +71,8 @@
     return toScreen({ x: x / ids.length, y: y / ids.length });
   }
 
-  let handsVisible = 0;
-
   function onResults(results) {
     const list = results.multiHandLandmarks || [];
-    handsVisible = list.length;
 
     for (let h = 0; h < handStates.length; h++) {
       const state = handStates[h];
@@ -132,15 +116,6 @@
   // ---- 描画ループ(手検出とは独立して常に回す) ----
   function renderLoop() {
     magic.update();
-    if (soundOn && !sound.playing) {
-      // 自動再生がブロックされている場合のみ案内を出す
-      statusEl.textContent = "🎵 音楽が流れない時は画面をクリックしてね";
-    } else {
-      statusEl.textContent =
-        handsVisible > 0
-          ? `🖐 手を検出中 (${handsVisible}) — 指で魔法を描こう!`
-          : "カメラに手をかざしてね";
-    }
     requestAnimationFrame(renderLoop);
   }
 
