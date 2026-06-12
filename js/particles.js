@@ -9,7 +9,7 @@ class MagicParticles {
     this.particles = [];
     this.rings = [];
     this.flash = 0; // 画面全体のフラッシュ強度 (0-1)
-    this.maxParticles = 2500;
+    this.maxParticles = 3500;
     this.lastTime = performance.now();
   }
 
@@ -41,39 +41,39 @@ class MagicParticles {
     const dx = x1 - x0;
     const dy = y1 - y0;
     const dist = Math.hypot(dx, dy);
-    const count = Math.max(2, Math.min(24, Math.ceil(dist / 4)));
+    const count = Math.max(4, Math.min(40, Math.ceil(dist / 2.5)));
 
     for (let i = 0; i < count; i++) {
       const t = i / count;
-      const x = x0 + dx * t + (Math.random() - 0.5) * 6;
-      const y = y0 + dy * t + (Math.random() - 0.5) * 6;
+      const x = x0 + dx * t + (Math.random() - 0.5) * 8;
+      const y = y0 + dy * t + (Math.random() - 0.5) * 8;
       const kind = Math.random();
 
-      if (kind < 0.55) {
+      if (kind < 0.45) {
         // ボケた大きめの光球(イメージ画像の主役)
         this._push({
           type: "bokeh",
           x, y,
           vx: (Math.random() - 0.5) * 14,
           vy: (Math.random() - 0.5) * 14 - 6,
-          size: 6 + Math.random() * 22,
+          size: 7 + Math.random() * 26,
           life: 1,
           decay: 0.25 + Math.random() * 0.3, // 寿命 ~2.5-4秒 → 軌跡をたどれる
           color: this._pickColor(),
-          alpha: 0.25 + Math.random() * 0.4,
+          alpha: 0.35 + Math.random() * 0.45,
         });
-      } else if (kind < 0.9) {
+      } else if (kind < 0.82) {
         // 小さく鋭いスパークル
         this._push({
           type: "spark",
           x, y,
-          vx: (Math.random() - 0.5) * 40,
-          vy: (Math.random() - 0.5) * 40 - 10,
-          size: 1 + Math.random() * 3.5,
+          vx: (Math.random() - 0.5) * 55,
+          vy: (Math.random() - 0.5) * 55 - 12,
+          size: 1.5 + Math.random() * 4,
           life: 1,
           decay: 0.35 + Math.random() * 0.45,
           color: this._pickColor(),
-          alpha: 0.8 + Math.random() * 0.2,
+          alpha: 0.9 + Math.random() * 0.1,
           twinkle: Math.random() * Math.PI * 2,
         });
       } else {
@@ -81,18 +81,32 @@ class MagicParticles {
         this._push({
           type: "star",
           x, y,
-          vx: (Math.random() - 0.5) * 10,
-          vy: (Math.random() - 0.5) * 10 - 4,
-          size: 5 + Math.random() * 11,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.5) * 12 - 4,
+          size: 6 + Math.random() * 13,
           life: 1,
-          decay: 0.45 + Math.random() * 0.4,
+          decay: 0.4 + Math.random() * 0.4,
           color: this._pickColor(),
-          alpha: 0.9,
+          alpha: 1,
           rot: Math.random() * Math.PI,
           twinkle: Math.random() * Math.PI * 2,
         });
       }
     }
+
+    // 指先そのものを包む明るいコアの光
+    this._push({
+      type: "bokeh",
+      x: x1,
+      y: y1,
+      vx: 0,
+      vy: 0,
+      size: 18 + Math.random() * 14,
+      life: 1,
+      decay: 2.2,
+      color: { hue: 205, sat: 70, light: 90 },
+      alpha: 0.75,
+    });
   }
 
   /** 手のひらを開いている間、ふんわり漂うオーラ */

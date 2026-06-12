@@ -9,10 +9,18 @@
   const canvas = document.getElementById("magic-canvas");
   const statusEl = document.getElementById("status");
   const loadingEl = document.getElementById("loading");
-  const burstLabel = document.getElementById("burst-label");
   const clearBtn = document.getElementById("clear-btn");
+  const soundBtn = document.getElementById("sound-btn");
 
   const magic = new MagicParticles(canvas);
+  const sound = new MagicSound();
+
+  let soundOn = true;
+  soundBtn.addEventListener("click", () => {
+    soundOn = !soundOn;
+    sound.setEnabled(soundOn);
+    soundBtn.textContent = soundOn ? "🔊 音 ON" : "🔇 音 OFF";
+  });
 
   function resize() {
     magic.resize(window.innerWidth, window.innerHeight);
@@ -75,14 +83,9 @@
     return toScreen({ x: x / ids.length, y: y / ids.length });
   }
 
-  function showBurstLabel() {
-    burstLabel.classList.remove("show");
-    // reflow を挟んでアニメーションを再生し直す
-    void burstLabel.offsetWidth;
-    burstLabel.classList.add("show");
-  }
-
   let handsVisible = 0;
+  let lastSparkleSound = 0;
+  const SPARKLE_SOUND_INTERVAL_MS = 110;
 
   function onResults(results) {
     const list = results.multiHandLandmarks || [];
@@ -106,7 +109,7 @@
       if (open && !state.open && now - state.lastBurst > BURST_COOLDOWN_MS) {
         const center = palmCenter(lm);
         magic.burst(center.x, center.y);
-        showBurstLabel();
+        sound.burst();
         state.lastBurst = now;
       }
       state.open = open;
@@ -120,6 +123,12 @@
         // 指先の軌跡にキラキラを撒く
         if (state.prevTip) {
           magic.emitTrail(state.prevTip.x, state.prevTip.y, tip.x, tip.y);
+          // ある程度指が動いている時だけ、キラッという音を鳴らす
+          const moved = Math.hypot(tip.x - state.prevTip.x, tip.y - state.prevTip.y);
+          if (moved > 6 && now - lastSparkleSound > SPARKLE_SOUND_INTERVAL_MS) {
+            sound.sparkle();
+            lastSparkleSound = now;
+          }
         } else {
           magic.emitTrail(tip.x, tip.y, tip.x, tip.y);
         }
@@ -131,10 +140,15 @@
   // ---- 描画ループ(手検出とは独立して常に回す) ----
   function renderLoop() {
     magic.update();
-    statusEl.textContent =
-      handsVisible > 0
-        ? `🖐 手を検出中 (${handsVisible}) — 指で魔法を描こう!`
-        : "カメラに手をかざしてね";
+    if (!sound.unlocked) {
+      // 自動再生制限のため、最初のクリックで BGM と効果音が有効になる
+      statusEl.textContent = "🎵 画面をクリックすると音楽がはじまるよ";
+    } else {
+      statusEl.textContent =
+        handsVisible > 0
+          ? `🖐 手を検出中 (${handsVisible}) — 指で魔法を描こう!`
+          : "カメラに手をかざしてね";
+    }
     requestAnimationFrame(renderLoop);
   }
 
