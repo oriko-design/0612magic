@@ -16,10 +16,11 @@
   const sound = new MagicSound();
 
   let soundOn = true;
-  soundBtn.addEventListener("click", () => {
+  soundBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // OFF にした直後に保険のリスナーで再生が再開しないように
     soundOn = !soundOn;
     sound.setEnabled(soundOn);
-    soundBtn.textContent = soundOn ? "🔊 音 ON" : "🔇 音 OFF";
+    soundBtn.textContent = soundOn ? "🔊 BGM ON" : "🔇 BGM OFF";
   });
 
   function resize() {
@@ -84,8 +85,6 @@
   }
 
   let handsVisible = 0;
-  let lastSparkleSound = 0;
-  const SPARKLE_SOUND_INTERVAL_MS = 110;
 
   function onResults(results) {
     const list = results.multiHandLandmarks || [];
@@ -109,7 +108,6 @@
       if (open && !state.open && now - state.lastBurst > BURST_COOLDOWN_MS) {
         const center = palmCenter(lm);
         magic.burst(center.x, center.y);
-        sound.burst();
         state.lastBurst = now;
       }
       state.open = open;
@@ -123,12 +121,6 @@
         // 指先の軌跡にキラキラを撒く
         if (state.prevTip) {
           magic.emitTrail(state.prevTip.x, state.prevTip.y, tip.x, tip.y);
-          // ある程度指が動いている時だけ、キラッという音を鳴らす
-          const moved = Math.hypot(tip.x - state.prevTip.x, tip.y - state.prevTip.y);
-          if (moved > 6 && now - lastSparkleSound > SPARKLE_SOUND_INTERVAL_MS) {
-            sound.sparkle();
-            lastSparkleSound = now;
-          }
         } else {
           magic.emitTrail(tip.x, tip.y, tip.x, tip.y);
         }
@@ -140,9 +132,9 @@
   // ---- 描画ループ(手検出とは独立して常に回す) ----
   function renderLoop() {
     magic.update();
-    if (!sound.unlocked) {
-      // 自動再生制限のため、最初のクリックで BGM と効果音が有効になる
-      statusEl.textContent = "🎵 画面をクリックすると音楽がはじまるよ";
+    if (soundOn && !sound.playing) {
+      // 自動再生がブロックされている場合のみ案内を出す
+      statusEl.textContent = "🎵 音楽が流れない時は画面をクリックしてね";
     } else {
       statusEl.textContent =
         handsVisible > 0
@@ -176,6 +168,7 @@
     .start()
     .then(() => {
       loadingEl.classList.add("hidden");
+      sound.tryPlay(); // カメラ起動のタイミングでも自動再生を再試行
       renderLoop();
     })
     .catch((err) => {

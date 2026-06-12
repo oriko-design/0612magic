@@ -26,7 +26,7 @@ body {
   height: 100%;
   object-fit: cover;
   transform: scaleX(-1); /* 鏡映し */
-  filter: brightness(0.3) saturate(0.65); /* かなり暗くして魔法を引き立てる */
+  filter: brightness(0.16) saturate(0.55); /* かなり暗くして魔法を引き立てる */
 }
 
 #magic-canvas {
