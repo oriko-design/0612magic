@@ -12,10 +12,25 @@
   const magic = new MagicParticles(canvas);
   const sound = new MagicSound();
 
+  // ---- 聞き取り字幕(マイクが動いているかの確認用) ----
+  const captionEl = document.getElementById("speech-caption");
+  let captionTimer = null;
+  function showCaption(text, ms) {
+    captionEl.textContent = text;
+    captionEl.classList.add("visible");
+    clearTimeout(captionTimer);
+    captionTimer = setTimeout(() => captionEl.classList.remove("visible"), ms);
+  }
+
   // 「ビビディバビディブー」と言うと金色のスペシャルショーが発動
-  const spellListener = new SpellListener(() => {
-    magic.bibbidiShow();
-  });
+  const spellListener = new SpellListener(
+    () => {
+      magic.bibbidiShow();
+      showCaption("✨ ビビディバビディブー!! ✨", 3000);
+    },
+    (heard) => showCaption(`🎤 ${heard}`, 2000),
+    (status) => showCaption(status, 5000)
+  );
 
   function resize() {
     magic.resize(window.innerWidth, window.innerHeight);

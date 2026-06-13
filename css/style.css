@@ -36,6 +36,32 @@ body {
   height: 100%;
 }
 
+/* ---------- 聞き取り字幕 ---------- */
+
+#speech-caption {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 80%;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(0, 10, 30, 0.45);
+  color: rgba(200, 230, 255, 0.85);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  z-index: 15;
+}
+
+#speech-caption.visible {
+  opacity: 1;
+}
+
 /* ---------- ローディング ---------- */
 
 #loading {
